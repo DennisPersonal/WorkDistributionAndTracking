@@ -1,0 +1,17 @@
+# Production dependencies
+-r base.txt
+
+# Production server
+gunicorn>=21.0.0
+
+# Production database (if using PostgreSQL)
+# psycopg2-binary>=2.9.0
+
+# Monitoring
+blinker>=1.7.0
+
+# Caching (optional)
+Flask-Caching>=2.0.0
+
+# Email (optional)
+Flask-Mail>=0.9.1

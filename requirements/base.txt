@@ -1,0 +1,26 @@
+# Core Flask
+Flask>=2.3.0
+Werkzeug>=2.3.0
+Jinja2>=3.1.0
+click>=8.1.0
+
+# Database
+Flask-SQLAlchemy>=3.0.0
+SQLAlchemy>=2.0.0
+
+# Authentication
+Flask-Login>=0.6.0
+Flask-WTF>=1.1.0
+email-validator>=2.0.0
+
+# Forms
+WTForms>=3.0.0
+
+# Security
+bcrypt>=4.0.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Date/Time
+pytz>=2023.0
