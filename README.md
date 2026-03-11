@@ -53,7 +53,7 @@ python scripts/setup_db.py
 ```bash
 python run.py
 ```
-访问 http://localhost:5000
+访问 http://localhost:5001
 
 ## 项目结构
 
@@ -106,7 +106,7 @@ flask db upgrade
 ### Docker 部署
 ```bash
 docker build -t work-tracking .
-docker run -p 5000:5000 work-tracking
+docker run -p 5001:5001 work-tracking
 ```
 
 ## 贡献指南

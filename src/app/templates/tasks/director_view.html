@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Director Task View - Work Distribution and Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-eye"></i> Director Task View</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Director Overview</strong> - Monitor all tasks across the organization, track progress, and manage workload distribution.
+                        </div>
+                        
+                        <!-- Task Statistics -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card text-white bg-success">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">{{ task_data.total_tasks or 0 }}</h1>
+                                        <p class="card-text">Total Tasks</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-warning">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">{{ task_data.in_progress_tasks or 0 }}</h1>
+                                        <p class="card-text">In Progress</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-info">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">{{ task_data.completed_tasks or 0 }}</h1>
+                                        <p class="card-text">Completed</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-danger">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">{{ task_data.overdue_tasks or 0 }}</h1>
+                                        <p class="card-text">Overdue</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- AI Task Creation -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-robot"></i> AI-Powered Task Creation</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Use natural language to create and assign tasks across the organization:</p>
+                                
+                                <form method="POST" action="{{ url_for('ai.analyze_task') }}">
+                                    {{ form.hidden_tag() if form else '' }}
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <div class="mb-3">
+                                        <label for="taskDescription" class="form-label">Task Description</label>
+                                        <textarea class="form-control" id="taskDescription" name="task_input" rows="3" placeholder="Describe the task in natural language. Example: 'Create a quarterly report for the marketing department by next Friday and assign it to the marketing team.'"></textarea>
+                                        <div class="form-text">The AI will analyze your description and create structured tasks.</div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="priority" class="form-label">Priority Level</label>
+                                            <select class="form-select" id="priority" name="priority">
+                                                <option value="LOW">Low Priority</option>
+                                                <option value="MEDIUM" selected>Medium Priority</option>
+                                                <option value="HIGH">High Priority</option>
+                                                <option value="URGENT">Urgent</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="department" class="form-label">Target Department</label>
+                                            <select class="form-select" id="department" name="department">
+                                                <option value="">All Departments</option>
+                                                <option value="技术部">技术部</option>
+                                                <option value="市场部">市场部</option>
+                                                <option value="销售部">销售部</option>
+                                                <option value="人力资源部">人力资源部</option>
+                                                <option value="财务部">财务部</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-magic"></i> Analyze with AI
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="showExample()">
+                                        <i class="fas fa-lightbulb"></i> Show Example
+                                    </button>
+                                </form>
+                                
+                                <div id="exampleText" class="mt-3" style="display: none;">
+                                    <div class="alert alert-light">
+                                        <h6>Example Input:</h6>
+                                        <p>"Create a comprehensive market analysis report for Q1 2026. Include competitor analysis, market trends, and growth opportunities. Assign to the marketing team with high priority. Due in two weeks."</p>
+                                        <p><strong>AI will:</strong></p>
+                                        <ul>
+                                            <li>Break down into subtasks (research, analysis, report writing)</li>
+                                            <li>Assign to appropriate team members based on skills</li>
+                                            <li>Set realistic deadlines</li>
+                                            <li>Suggest priority levels</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Overview -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-tasks"></i> Task Overview</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Assigned To</th>
+                                                <th>Department</th>
+                                                <th>Status</th>
+                                                <th>Priority</th>
+                                                <th>Due Date</th>
+                                                <th>Progress</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if task_data.tasks %}
+                                                {% for task in task_data.tasks %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ task.title }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ task.description[:50] }}...</small>
+                                                    </td>
+                                                    <td>
+                                                        {% if task.assigned_to %}
+                                                            {{ task.assigned_to }}
+                                                        {% else %}
+                                                            <span class="text-muted">Unassigned</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ task.department or 'General' }}</td>
+                                                    <td>
+                                                        <span class="badge bg-{% if task.status == 'COMPLETED' %}success{% elif task.status == 'IN_PROGRESS' %}primary{% elif task.status == 'PENDING' %}secondary{% else %}warning{% endif %}">
+                                                            {{ task.status }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-{% if task.priority == 'URGENT' %}danger{% elif task.priority == 'HIGH' %}warning{% elif task.priority == 'MEDIUM' %}info{% else %}secondary{% endif %}">
+                                                            {{ task.priority }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% if task.due_date %}
+                                                            {{ task.due_date.strftime('%Y-%m-%d') }}
+                                                        {% else %}
+                                                            <span class="text-muted">No deadline</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar" role="progressbar" style="width: {{ task.progress or 0 }}%;">
+                                                                {{ task.progress or 0 }}%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-warning" title="Edit">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="8" class="text-center text-muted">
+                                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                                        <p>No tasks found. Use the AI tool above to create tasks.</p>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Department Breakdown -->
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Department Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% if task_data.departments %}
+                                        {% for dept, data in task_data.departments.items() %}
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6>{{ dept }}</h6>
+                                                    <p class="mb-1">Total Tasks: {{ data.total }}</p>
+                                                    <p class="mb-1">In Progress: {{ data.in_progress }}</p>
+                                                    <p class="mb-1">Completed: {{ data.completed }}</p>
+                                                    <div class="progress mt-2" style="height: 10px;">
+                                                        <div class="progress-bar bg-success" style="width: {{ data.completion_rate }}%"></div>
+                                                    </div>
+                                                    <small class="text-muted">Completion: {{ data.completion_rate }}%</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="col-md-12 text-center text-muted">
+                                            <p>No department data available.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showExample() {
+            var exampleDiv = document.getElementById('exampleText');
+            if (exampleDiv.style.display === 'none') {
+                exampleDiv.style.display = 'block';
+            } else {
+                exampleDiv.style.display = 'none';
+            }
+        }
+        
+        // Auto-populate example
+        document.addEventListener('DOMContentLoaded', function() {
+            var textarea = document.getElementById('taskDescription');
+            if (textarea && textarea.value === '') {
+                // Set a helpful placeholder
+                textarea.placeholder = "Example: 'Create a quarterly report for the marketing department by next Friday and assign it to the marketing team. Include competitor analysis and market trends.'";
+            }
+        });
+    </script>
+    {% endblock %}
+</body>
+</html>

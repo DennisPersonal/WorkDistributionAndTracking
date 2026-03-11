@@ -27,9 +27,22 @@
         </div>
     </div>
     <div class="col-lg-6">
-        <img src="{{ url_for('static', filename='images/dashboard-preview.svg') }}" 
-             alt="Dashboard Preview" 
-             class="img-fluid rounded shadow">
+        <div class="card border-0 shadow-lg">
+            <div class="card-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fas fa-tachometer-alt fa-6x text-primary"></i>
+                </div>
+                <h3 class="card-title">Interactive Dashboard</h3>
+                <p class="card-text text-muted">
+                    Real-time task tracking, workload visualization, and team collaboration tools.
+                </p>
+                <div class="mt-4">
+                    <span class="badge bg-primary me-2">Task Management</span>
+                    <span class="badge bg-success me-2">AI Analysis</span>
+                    <span class="badge bg-info">Team Collaboration</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -91,7 +104,7 @@
                         <i class="fas fa-rocket"></i> Start Free Trial
                     </a>
                     {% else %}
-                    <a href="{{ url_for('tasks.create_task') }}" class="btn btn-success btn-lg">
+                    <a href="{{ url_for('task.create_task') }}" class="btn btn-success btn-lg">
                         <i class="fas fa-plus"></i> Create Your First Task
                     </a>
                     {% endif %}

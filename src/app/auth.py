@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from src.app import db
-from src.app.models import User
+from src.app.models_extended import User
 from src.app.forms import LoginForm, RegistrationForm
 
 auth_bp = Blueprint('auth', __name__)
@@ -78,3 +78,41 @@ def logout():
 def profile():
     """User profile."""
     return render_template('auth/profile.html', user=current_user)
+
+@auth_bp.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    """Update user profile."""
+    try:
+        # 获取表单数据
+        full_name = request.form.get('full_name')
+        email = request.form.get('email')
+        title = request.form.get('title')
+        department = request.form.get('department')
+        weekly_capacity = request.form.get('weekly_capacity')
+        active = request.form.get('active') == 'on'
+        
+        # 更新用户信息
+        if full_name:
+            current_user.full_name = full_name
+        if email:
+            current_user.email = email
+        if title:
+            current_user.title = title
+        if department:
+            current_user.department = department
+        if weekly_capacity:
+            try:
+                current_user.weekly_capacity = int(weekly_capacity)
+            except ValueError:
+                pass
+        current_user.active = active
+        
+        # 保存到数据库
+        db.session.commit()
+        
+        flash('Profile updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating profile: {str(e)}', 'danger')
+    
+    return redirect(url_for('auth.profile'))

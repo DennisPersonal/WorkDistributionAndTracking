@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Documentation - Work Distribution and Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-question-circle"></i> Help Documentation</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Welcome to the Help Center</strong> - Find answers to common questions and learn how to use the system effectively.
+                        </div>
+                        
+                        <!-- Quick Navigation -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="list-group">
+                                    <a href="#getting-started" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-play-circle"></i> Getting Started
+                                    </a>
+                                    <a href="#user-management" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-users"></i> User Management
+                                    </a>
+                                    <a href="#task-management" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-tasks"></i> Task Management
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="list-group">
+                                    <a href="#organization" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-sitemap"></i> Organization
+                                    </a>
+                                    <a href="#ai-features" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-robot"></i> AI Features
+                                    </a>
+                                    <a href="#troubleshooting" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-wrench"></i> Troubleshooting
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-search"></i> Quick Search</h6>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="Search help topics...">
+                                            <button class="btn btn-primary" type="button">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                        <div class="mt-3">
+                                            <h6>Popular Topics</h6>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <span class="badge bg-secondary">Login Issues</span>
+                                                <span class="badge bg-secondary">Task Creation</span>
+                                                <span class="badge bg-secondary">AI Analysis</span>
+                                                <span class="badge bg-secondary">Workload</span>
+                                                <span class="badge bg-secondary">Reports</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Getting Started -->
+                        <div id="getting-started" class="mb-5">
+                            <h5><i class="fas fa-play-circle text-primary"></i> Getting Started</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>First Time Users</h6>
+                                    <p>Welcome to the Work Distribution and Tracking System. Follow these steps to get started:</p>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="card mb-3">
+                                                <div class="card-body text-center">
+                                                    <div class="display-4 text-primary">1</div>
+                                                    <h6>Account Setup</h6>
+                                                    <p class="small">Register or login with your credentials</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card mb-3">
+                                                <div class="card-body text-center">
+                                                    <div class="display-4 text-success">2</div>
+                                                    <h6>Profile Completion</h6>
+                                                    <p class="small">Complete your user profile information</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card mb-3">
+                                                <div class="card-body text-center">
+                                                    <div class="display-4 text-warning">3</div>
+                                                    <h6>System Tour</h6>
+                                                    <p class="small">Explore dashboard and features</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="mt-4">System Requirements</h6>
+                                    <ul>
+                                        <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
+                                        <li>Internet connection</li>
+                                        <li>JavaScript enabled</li>
+                                        <li>Screen resolution: 1024x768 or higher</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- User Management -->
+                        <div id="user-management" class="mb-5">
+                            <h5><i class="fas fa-users text-success"></i> User Management</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>User Roles and Permissions</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Role</th>
+                                                    <th>Permissions</th>
+                                                    <th>Access Level</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><span class="badge bg-danger">Director</span></td>
+                                                    <td>Full system access, user management, organization setup</td>
+                                                    <td>Administrator</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span class="badge bg-warning">Manager</span></td>
+                                                    <td>Team management, task assignment, workload monitoring</td>
+                                                    <td>Manager</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span class="badge bg-success">Employee</span></td>
+                                                    <td>Task execution, progress updates, personal dashboard</td>
+                                                    <td>User</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <h6 class="mt-4">Profile Management</h6>
+                                    <p>To update your profile information:</p>
+                                    <ol>
+                                        <li>Click on your username in the top navigation bar</li>
+                                        <li>Select "Profile" from the dropdown menu</li>
+                                        <li>Update your information in the profile form</li>
+                                        <li>Click "Save Changes" to update your profile</li>
+                                    </ol>
+                                    
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> Some profile fields may be restricted based on your role and permissions.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Management -->
+                        <div id="task-management" class="mb-5">
+                            <h5><i class="fas fa-tasks text-warning"></i> Task Management</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Creating Tasks</h6>
+                                    <p>Depending on your role, you can create tasks in different ways:</p>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6><i class="fas fa-edit"></i> Manual Creation</h6>
+                                                    <p>Use the task creation form to manually create tasks:</p>
+                                                    <ol class="small">
+                                                        <li>Navigate to Tasks → Create Task</li>
+                                                        <li>Fill in task details (title, description, priority)</li>
+                                                        <li>Select assignee and due date</li>
+                                                        <li>Click "Create Task"</li>
+                                                    </ol>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6><i class="fas fa-robot"></i> AI-Powered Creation</h6>
+                                                    <p>Use AI to convert natural language to tasks:</p>
+                                                    <ol class="small">
+                                                        <li>Go to AI Analysis page</li>
+                                                        <li>Enter task description in natural language</li>
+                                                        <li>AI will analyze and suggest task breakdown</li>
+                                                        <li>Review and confirm task creation</li>
+                                                    </ol>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="mt-4">Task Status and Progress</h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <span class="badge bg-secondary">Pending</span>
+                                            <p class="small">Task created but not started</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="badge bg-info">Assigned</span>
+                                            <p class="small">Task assigned to team member</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="badge bg-primary">In Progress</span>
+                                            <p class="small">Task being worked on</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="badge bg-success">Completed</span>
+                                            <p class="small">Task finished</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Organization -->
+                        <div id="organization" class="mb-5">
+                            <h5><i class="fas fa-sitemap text-info"></i> Organization Management</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Organization Chart</h6>
+                                    <p>The organization chart displays the hierarchical structure of your team:</p>
+                                    <ul>
+                                        <li><strong>Director Level:</strong> Top management (red nodes)</li>
+                                        <li><strong>Manager Level:</strong> Team leaders (yellow nodes)</li>
+                                        <li><strong>Employee Level:</strong> Team members (green nodes)</li>
+                                    </ul>
+                                    
+                                    <h6 class="mt-4">Workload Indicators</h6>
+                                    <p>Each node in the organization chart shows workload status:</p>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <span class="badge bg-success">Low Workload</span>
+                                            <p class="small">&lt; 60% capacity</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="badge bg-warning">Medium Workload</span>
+                                            <p class="small">60-85% capacity</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="badge bg-danger">High Workload</span>
+                                            <p class="small">&gt; 85% capacity</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- AI Features -->
+                        <div id="ai-features" class="mb-5">
+                            <h5><i class="fas fa-robot text-danger"></i> AI Features</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>AI Task Analysis</h6>
+                                    <p>The AI system helps with:</p>
+                                    <ul>
+                                        <li><strong>Task Breakdown:</strong> Convert natural language to structured tasks</li>
+                                        <li><strong>Workload Optimization:</strong> Balance workload across team members</li>
+                                        <li><strong>Skill Matching:</strong> Match tasks with employee skills</li>
+                                        <li><strong>Deadline Prediction:</strong> Suggest realistic deadlines</li>
+                                    </ul>
+                                    
+                                    <h6 class="mt-4">Using AI Analysis</h6>
+                                    <ol>
+                                        <li>Navigate to AI Analysis page</li>
+                                        <li>Select analysis type (Workload, Task Optimization, etc.)</li>
+                                        <li>Review AI recommendations</li>
+                                        <li>Apply suggestions as needed</li>
+                                    </ol>
+                                    
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> The AI system learns from your usage patterns and provides better recommendations over time.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Troubleshooting -->
+                        <div id="troubleshooting">
+                            <h5><i class="fas fa-wrench text-secondary"></i> Troubleshooting</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Common Issues and Solutions</h6>
+                                    
+                                    <div class="accordion" id="troubleshootingAccordion">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#loginIssue">
+                                                    <i class="fas fa-sign-in-alt text-danger"></i> Login Issues
+                                                </button>
+                                            </h2>
+                                            <div id="loginIssue" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                                                <div class="accordion-body">
+                                                    <p><strong>Problem:</strong> Cannot login to the system</p>
+                                                    <p><strong>Solution:</strong></p>
+                                                    <ul>
+                                                        <li>Check your username and password</li>
+                                                        <li>Ensure Caps Lock is not enabled</li>
+                                                        <li>Clear browser cache and cookies</li>
+                                                        <li>Try using incognito/private browsing mode</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#taskIssue">
+                                                    <i class="fas fa-tasks text-warning"></i> Task Creation Problems
+                                                </button>
+                                            </h2>
+                                            <div id="taskIssue" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                                <div class="accordion-body">
+                                                    <p><strong>Problem:</strong> Cannot create or assign tasks</p>
+                                                    <p><strong>Solution:</strong></p>
+                                                    <ul>
+                                                        <li>Check your role permissions</li>
+                                                        <li>Ensure assignee is active in the system</li>
+                                                        <li>Verify task details are complete</li>
+                                                        <li>Check for system notifications or errors</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#displayIssue">
+                                                    <i class="fas fa-desktop text-info"></i> Display Issues
+                                                </button>
+                                            </h2>
+                                            <div id="displayIssue" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                                <div class="accordion-body">
+                                                    <p><strong>Problem:</strong> Pages not displaying correctly</p>
+                                                    <p><strong>Solution:</strong></p>
+                                                    <ul>
+                                                        <li>Refresh the page (F5 or Ctrl+R)</li>
+                                                        <li>Clear browser cache</li>
+                                                        <li>Check internet connection</li>
+                                                        <li>Try different browser</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="mt-4">Contact Support</h6>
+                                    <p>If you continue to experience issues:</p>
+                                    <ul>
+                                        <li><strong>Email:</strong> support@workdistribution.com</li>
+                                        <li><strong>Phone:</strong> +1 (555) 123-4567</li>
+                                        <li><strong>Hours:</strong> Monday-Friday, 9AM-5PM EST</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+</body>
+</html>

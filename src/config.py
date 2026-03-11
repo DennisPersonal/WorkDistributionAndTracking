@@ -23,7 +23,7 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = os.environ.get('REMEMBER_COOKIE_HTTPONLY', 'True').lower() == 'true'
     
     # File upload
-    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16MB
+    MAX_CONTENT_LENGTH = int(eval(os.environ.get('MAX_CONTENT_LENGTH', '16 * 1024 * 1024')))  # 16MB
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'csv'}
     

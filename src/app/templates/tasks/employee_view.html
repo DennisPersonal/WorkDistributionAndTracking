@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tasks - Work Distribution and Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-tasks"></i> My Tasks</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Welcome Message -->
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="alert-heading">Welcome, {{ current_user.full_name or current_user.username }}!</h5>
+                                    <p class="mb-0">Here are all the tasks assigned to you. You can update progress, mark tasks as complete, and view details.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Workload Summary -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card text-center border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-muted">Total Tasks</h6>
+                                        <h3 class="text-primary">{{ tasks|length }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-muted">In Progress</h6>
+                                        <h3 class="text-warning">{{ tasks|selectattr('status', 'equalto', 'in_progress')|list|length }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-muted">Completed</h6>
+                                        <h3 class="text-success">{{ tasks|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-muted">Workload</h6>
+                                        <h3 class="text-{% if current_user.current_workload < 60 %}success{% elif current_user.current_workload < 85 %}warning{% else %}danger{% endif %}">
+                                            {{ current_user.current_workload or 0 }}%
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tasks Table -->
+                        {% if tasks %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                        <th>Progress</th>
+                                        <th>Estimated Hours</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ task.title }}</strong>
+                                            {% if task.is_completed %}
+                                            <span class="badge bg-success ms-2">Completed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ task.description|truncate(100) }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if task.priority.value == 'urgent' %}danger{% elif task.priority.value == 'high' %}warning{% elif task.priority.value == 'medium' %}info{% else %}secondary{% endif %}">
+                                                {{ task.priority.value|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if task.status.value == 'completed' %}success{% elif task.status.value == 'in_progress' %}primary{% elif task.status.value == 'assigned' %}info{% else %}secondary{% endif %}">
+                                                {{ task.status.value|replace('_', ' ')|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if task.due_date %}
+                                                {{ task.due_date.strftime('%Y-%m-%d') }}
+                                                {% if task.due_date < now %}
+                                                <span class="badge bg-danger ms-1">Overdue</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">No deadline</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-{% if task.progress == 100 %}success{% elif task.progress > 50 %}info{% else %}warning{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ task.progress }}%;"
+                                                     aria-valuenow="{{ task.progress }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ task.progress }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if task.estimated_hours %}
+                                                {{ "%.1f"|format(task.estimated_hours) }} hours
+                                            {% else %}
+                                                <span class="text-muted">Not estimated</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary" 
+                                                        onclick="viewTaskDetails({{ task.id }})"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                {% if task.status.value != 'completed' %}
+                                                <button type="button" class="btn btn-outline-success" 
+                                                        onclick="updateTaskProgress({{ task.id }})"
+                                                        title="Update Progress">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info" 
+                                                        onclick="markTaskComplete({{ task.id }})"
+                                                        title="Mark Complete">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Task Statistics -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Task Status Distribution</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Assigned</span>
+                                            <span class="badge bg-info">{{ tasks|selectattr('status', 'equalto', 'assigned')|list|length }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>In Progress</span>
+                                            <span class="badge bg-primary">{{ tasks|selectattr('status', 'equalto', 'in_progress')|list|length }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Completed</span>
+                                            <span class="badge bg-success">{{ tasks|selectattr('status', 'equalto', 'completed')|list|length }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Priority Overview</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Urgent</span>
+                                            <span class="badge bg-danger">{{ tasks|selectattr('priority', 'equalto', 'urgent')|list|length }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>High</span>
+                                            <span class="badge bg-warning">{{ tasks|selectattr('priority', 'equalto', 'high')|list|length }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Medium</span>
+                                            <span class="badge bg-info">{{ tasks|selectattr('priority', 'equalto', 'medium')|list|length }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Low</span>
+                                            <span class="badge bg-secondary">{{ tasks|selectattr('priority', 'equalto', 'low')|list|length }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Tasks Assigned</h4>
+                            <p class="text-muted">You don't have any tasks assigned to you yet.</p>
+                            <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Details Modal -->
+    <div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="taskDetailsModalLabel"><i class="fas fa-info-circle"></i> Task Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="taskDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading task details...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Update Progress Modal -->
+    <div class="modal fade" id="updateProgressModal" tabindex="-1" aria-labelledby="updateProgressModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="updateProgressModalLabel"><i class="fas fa-edit"></i> Update Task Progress</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateProgressForm">
+                        <input type="hidden" id="updateTaskId" name="task_id">
+                        <div class="mb-3">
+                            <label for="progressValue" class="form-label">Progress (%)</label>
+                            <input type="range" class="form-range" id="progressValue" name="progress" min="0" max="100" step="5" value="0">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <span id="progressDisplay" class="fw-bold">0%</span>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="progressNotes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="progressNotes" name="notes" rows="3" placeholder="Add any notes about your progress..."></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="markComplete" name="mark_complete">
+                            <label class="form-check-label" for="markComplete">
+                                Mark as complete (100% progress)
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="submitProgressUpdate()">Update Progress</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Set current date for overdue calculations
+        const now = new Date();
+        
+        // Task details function
+        function viewTaskDetails(taskId) {
+            console.log('Viewing task details:', taskId);
+            // In a real implementation, this would fetch task details via API
+            // For now, we'll show a simple message
+            document.getElementById('taskDetailsContent').innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+                    <h5>Task Details</h5>
+                    <p>Task ID: ${taskId}</p>
+                    <p>Detailed task view would be implemented here with API call.</p>
+                </div>
+            `;
+            const modal = new bootstrap.Modal(document.getElementById('taskDetailsModal'));
+            modal.show();
+        }
+        
+        // Update progress function
+        function updateTaskProgress(taskId) {
+            console.log('Updating task progress:', taskId);
+            document.getElementById('updateTaskId').value = taskId;
+            
+            // Update progress slider display
+            const progressSlider = document.getElementById('progressValue');
+            const progressDisplay = document.getElementById('progressDisplay');
+            
+            progressSlider.addEventListener('input', function() {
+                progressDisplay.textContent = this.value + '%';
+                document.getElementById('markComplete').checked = this.value == 100;
+            });
+            
+            const modal = new bootstrap.Modal(document.getElementById('updateProgressModal'));
+            modal.show();
+        }
+        
+        // Mark task complete function
+        function markTaskComplete(taskId) {
+            if (confirm('Are you sure you want to mark this task as complete?')) {
+                console.log('Marking task complete:', taskId);
+                // In a real implementation, this would send an API request
+                alert('Task marked as complete! This would update via API in a real implementation.');
+                // Reload page to reflect changes
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+        
+        // Submit progress update
+        function submitProgressUpdate() {
+            const taskId = document.getElementById('updateTaskId').value;
+            const progress = document.getElementById('progressValue').value;
+            const notes = document.getElementById('progressNotes').value;
+            const markComplete = document.getElementById('markComplete').checked;
+            
+            console.log('Submitting progress update:', { taskId, progress, notes, markComplete });
+            
+            // In a real implementation, this would send an API request
+            alert(`Progress updated to ${progress}%! This would update via API in a real implementation.`);
+            
+            // Close modal and reload
+            const modal = bootstrap.Modal.getInstance(document.getElementById('updateProgressModal'));
+            modal.hide();
+            setTimeout(() => location.reload(), 1000);
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Employee tasks page loaded');
+            
+            // Highlight overdue tasks
+            document.querySelectorAll('td').forEach(td => {
+                if (td.textContent.includes('Overdue')) {
+                    td.closest('tr').classList.add('table-danger');
+                }
+            });
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+    {% endblock %}
+</body>
+</html>

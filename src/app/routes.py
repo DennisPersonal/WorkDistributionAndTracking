@@ -15,18 +15,20 @@ def index():
 def dashboard():
     """User dashboard."""
     # Get user's tasks
-    pending_tasks = current_user.tasks_assigned.filter_by(status='pending').all()
-    in_progress_tasks = current_user.tasks_assigned.filter_by(status='in_progress').all()
+    from src.app.models_extended import TaskStatus, Task
     
-    # Get recent notifications
-    notifications = current_user.notifications.filter_by(is_read=False).order_by(
-        Notification.created_at.desc()
+    pending_tasks = current_user.tasks_assigned.filter_by(status=TaskStatus.PENDING).all()
+    in_progress_tasks = current_user.tasks_assigned.filter_by(status=TaskStatus.IN_PROGRESS).all()
+    
+    # Get recent tasks for notifications (simplified)
+    recent_tasks = Task.query.filter_by(assigned_to_id=current_user.id).order_by(
+        Task.created_at.desc()
     ).limit(5).all()
     
     return render_template('dashboard.html',
                          pending_tasks=pending_tasks,
                          in_progress_tasks=in_progress_tasks,
-                         notifications=notifications)
+                         recent_tasks=recent_tasks)
 
 @main_bp.route('/about')
 def about():

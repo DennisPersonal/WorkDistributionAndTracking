@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Chart - Work Distribution and Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <style>
+        .org-chart {
+            min-height: 500px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .org-node {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .org-node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .org-node.director {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+        
+        .org-node.manager {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+            color: #212529;
+        }
+        
+        .org-node.employee {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #6bcf7f, #28a745);
+            color: white;
+        }
+        
+        .org-connector {
+            height: 40px;
+            width: 2px;
+            background: #6c757d;
+            margin: 0 auto;
+        }
+        
+        .org-level {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 24px;
+        }
+        
+        .workload-badge {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        
+        .workload-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .workload-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .workload-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-sitemap"></i> Organization Chart</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Organization Structure</strong> - This chart shows the hierarchical structure of your organization with workload indicators.
+                        </div>
+                        
+                        <!-- Organization Chart -->
+                        <div class="org-chart">
+                            {% if hierarchical_data %}
+                                <!-- Level 1: Director -->
+                                <div class="org-level">
+                                    {% for director in hierarchical_data %}
+                                    <div class="org-node director">
+                                        <div class="user-avatar">
+                                            <i class="fas fa-crown"></i>
+                                        </div>
+                                        <h6 class="mb-1">{{ director.full_name or director.username }}</h6>
+                                        <p class="mb-1 text-small">Director</p>
+                                        <div class="mt-2">
+                                            <span class="badge workload-{% if director.current_workload < 60 %}low{% elif director.current_workload < 85 %}medium{% else %}high{% endif %}">
+                                                {{ "%.0f"|format(director.current_workload or 0) }}% Workload
+                                            </span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">{{ director.department or 'Management' }}</small>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">{{ director.children|length }} Managers</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Connector -->
+                                <div class="org-connector"></div>
+                                
+                                <!-- Level 2: Managers -->
+                                <div class="org-level">
+                                    {% for director in hierarchical_data %}
+                                        {% for manager in director.children %}
+                                        <div class="org-node manager">
+                                            <div class="user-avatar">
+                                                <i class="fas fa-user-tie"></i>
+                                            </div>
+                                            <h6 class="mb-1">{{ manager.full_name or manager.username }}</h6>
+                                            <p class="mb-1 text-small">Manager</p>
+                                            <div class="mt-2">
+                                                <span class="badge workload-{% if manager.current_workload < 60 %}low{% elif manager.current_workload < 85 %}medium{% else %}high{% endif %}">
+                                                    {{ "%.0f"|format(manager.current_workload or 0) }}% Workload
+                                                </span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">{{ manager.department or 'Department' }}</small>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">{{ manager.children|length }} Employees</small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Connector -->
+                                <div class="org-connector"></div>
+                                
+                                <!-- Level 3: Employees -->
+                                <div class="org-level">
+                                    {% for director in hierarchical_data %}
+                                        {% for manager in director.children %}
+                                            {% for employee in manager.children %}
+                                            <div class="org-node employee">
+                                                <div class="user-avatar">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <h6 class="mb-1">{{ employee.full_name or employee.username }}</h6>
+                                                <p class="mb-1 text-small">Employee</p>
+                                                <div class="mt-2">
+                                                    <span class="badge workload-{% if employee.current_workload < 60 %}low{% elif employee.current_workload < 85 %}medium{% else %}high{% endif %}">
+                                                        {{ "%.0f"|format(employee.current_workload or 0) }}% Workload
+                                                    </span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">{{ employee.department or 'Team' }}</small>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Reports to: {{ manager.full_name or manager.username }}</small>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> No organization data available.
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Statistics -->
+                        <div class="row mt-4">
+                            <div class="col-md-3">
+                                <div class="card text-white bg-primary">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">{{ chart_data|length }}</h1>
+                                        <p class="card-text">Total Users</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-success">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">
+                                            {% set employee_count = chart_data|selectattr('role', 'equalto', 'EMPLOYEE')|list|length %}
+                                            {{ employee_count }}
+                                        </h1>
+                                        <p class="card-text">Employees</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-warning">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">
+                                            {% set manager_count = chart_data|selectattr('role', 'equalto', 'MANAGER')|list|length %}
+                                            {{ manager_count }}
+                                        </h1>
+                                        <p class="card-text">Managers</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-danger">
+                                    <div class="card-body text-center">
+                                        <h1 class="display-4">
+                                            {% set director_count = chart_data|selectattr('role', 'equalto', 'DIRECTOR')|list|length %}
+                                            {{ director_count }}
+                                        </h1>
+                                        <p class="card-text">Directors</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Workload Summary -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Workload Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h6>Workload Status</h6>
+                                        <div class="list-group">
+                                            <div class="list-group-item">
+                                                <span class="badge bg-success me-2">Low</span>
+                                                <span>Workload &lt; 60%</span>
+                                            </div>
+                                            <div class="list-group-item">
+                                                <span class="badge bg-warning me-2">Medium</span>
+                                                <span>Workload 60-85%</span>
+                                            </div>
+                                            <div class="list-group-item">
+                                                <span class="badge bg-danger me-2">High</span>
+                                                <span>Workload &gt; 85%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h6>Department Overview</h6>
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Department</th>
+                                                    <th>Users</th>
+                                                    <th>Avg Workload</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set departments = {} %}
+                                                {% for user in chart_data %}
+                                                    {% if user.department not in departments %}
+                                                        {% set _ = departments.update({user.department: {'count': 0, 'workload': 0}}) %}
+                                                    {% endif %}
+                                                    {% set _ = departments[user.department].update({'count': departments[user.department].count + 1}) %}
+                                                    {% set _ = departments[user.department].update({'workload': departments[user.department].workload + user.current_workload}) %}
+                                                {% endfor %}
+                                                
+                                                {% for dept, data in departments.items() %}
+                                                <tr>
+                                                    <td>{{ dept }}</td>
+                                                    <td>{{ data.count }}</td>
+                                                    <td>{{ "%.1f"|format(data.workload / data.count) }}%</td>
+                                                    <td>
+                                                        {% set avg_workload = data.workload / data.count %}
+                                                        {% if avg_workload < 60 %}
+                                                            <span class="badge bg-success">Balanced</span>
+                                                        {% elif avg_workload < 85 %}
+                                                            <span class="badge bg-warning">Moderate</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">High</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+</body>
+</html>

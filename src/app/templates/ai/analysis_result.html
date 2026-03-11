@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analysis Result - Work Distribution and Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    
+    <script>
+        // JavaScript functions must be defined before they are used
+        let currentTaskId = null;
+        
+        function assignTask(taskId) {
+            console.log('Assigning task:', taskId);
+            currentTaskId = taskId;
+            
+            // Get modal elements
+            const assignTaskIdInput = document.getElementById('assignTaskId');
+            const dueDateInput = document.getElementById('dueDate');
+            const modalElement = document.getElementById('assignTaskModal');
+            
+            // Check if elements exist
+            if (!assignTaskIdInput || !dueDateInput || !modalElement) {
+                console.error('Modal elements not found:', {
+                    assignTaskId: !!assignTaskIdInput,
+                    dueDate: !!dueDateInput,
+                    modal: !!modalElement
+                });
+                alert('Assignment feature is not available. Please refresh the page.');
+                return;
+            }
+            
+            // Set task ID
+            assignTaskIdInput.value = taskId;
+            
+            // Set default due date to 7 days from now
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(today.getDate() + 7);
+            dueDateInput.value = nextWeek.toISOString().split('T')[0];
+            
+            // Show modal
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+        
+        function submitAssignment() {
+            // Get form elements
+            const assignTaskIdInput = document.getElementById('assignTaskId');
+            const assignToUserSelect = document.getElementById('assignToUser');
+            const dueDateInput = document.getElementById('dueDate');
+            const prioritySelect = document.getElementById('priority');
+            
+            // Check if elements exist
+            if (!assignTaskIdInput || !assignToUserSelect || !dueDateInput || !prioritySelect) {
+                console.error('Form elements not found');
+                alert('Assignment form is not available. Please refresh the page.');
+                return;
+            }
+            
+            const taskId = assignTaskIdInput.value;
+            const userId = assignToUserSelect.value;
+            const dueDate = dueDateInput.value;
+            const priority = prioritySelect.value;
+            
+            if (!userId) {
+                alert('Please select an employee to assign the task to.');
+                return;
+            }
+            
+            if (!taskId) {
+                alert('Task ID is missing. Please try again.');
+                return;
+            }
+            
+            console.log('Submitting assignment:', { taskId, userId, dueDate, priority });
+            
+            // Get CSRF token from the assign task form
+            const csrfInput = document.querySelector('#assignTaskForm [name=csrf_token]');
+            const csrfToken = csrfInput?.value || '';
+            console.log('CSRF Token found:', csrfToken ? 'Yes' : 'No', 'Length:', csrfToken.length);
+            console.log('CSRF Input element:', csrfInput);
+            
+            if (!csrfToken) {
+                console.warn('CSRF token is empty! Checking other forms...');
+                // 尝试从其他表单获取
+                const allCsrfInputs = document.querySelectorAll('[name=csrf_token]');
+                console.log('All CSRF inputs found:', allCsrfInputs.length);
+                allCsrfInputs.forEach((input, i) => {
+                    console.log(`  CSRF input ${i}:`, input, 'value:', input.value?.length || 0);
+                });
+            }
+            
+            // Send assignment request
+            fetch('/tasks/' + taskId + '/assign', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    due_date: dueDate,
+                    priority: priority
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status, response.statusText);
+                if (!response.ok) {
+                    // 尝试获取错误信息
+                    return response.text().then(text => {
+                        console.error('Error response text:', text);
+                        try {
+                            const errorData = JSON.parse(text);
+                            throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+                        } catch {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}\nResponse: ${text}`);
+                        }
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success response:', data);
+                if (data.success) {
+                    alert('Task assigned successfully!');
+                    location.reload();
+                } else {
+                    alert('Failed to assign task: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error details:', error);
+                alert('Failed to assign task: ' + error.message);
+            });
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Analysis result page loaded');
+            
+            // Add click event to all assign buttons
+            document.querySelectorAll('.assign-task-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-task-id');
+                    assignTask(taskId);
+                });
+            });
+            
+            // If no employees in dropdown, fetch them
+            const employeeSelect = document.getElementById('assignToUser');
+            if (employeeSelect && employeeSelect.options.length <= 1) {
+                fetch('/tasks/api/employees')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.employees) {
+                            employeeSelect.innerHTML = '<option value="">Select an employee...</option>';
+                            data.employees.forEach(employee => {
+                                if (employee.role === 'EMPLOYEE' || employee.role === 'employee') {
+                                    const option = document.createElement('option');
+                                    option.value = employee.id;
+                                    option.textContent = `${employee.full_name || employee.username} (${employee.department || 'General'})`;
+                                    employeeSelect.appendChild(option);
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to load employees:', error);
+                    });
+            }
+        });
+    </script>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0"><i class="fas fa-robot"></i> AI Analysis Result</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> <strong>AI Analysis Complete!</strong> Your task has been analyzed and processed.
+                        </div>
+                        
+                        <!-- Analysis Summary -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Analysis Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Original Input:</h6>
+                                        <div class="alert alert-light">
+                                            <p class="mb-0">{{ analysis.user_input }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Analysis Details:</h6>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                Confidence Score
+                                                <span class="badge bg-primary rounded-pill">{{ "%.1f"|format(analysis.confidence_score * 100) }}%</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                AI Model
+                                                <span class="badge bg-secondary rounded-pill">{{ analysis.ai_model }}</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                Analysis Time
+                                                <span class="text-muted">{{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Breakdown -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0"><i class="fas fa-tasks"></i> Task Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if steps %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Step</th>
+                                                <th>Description</th>
+                                                <th>Estimated Hours</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for step in steps %}
+                                            <tr>
+                                                <td><strong>Step {{ loop.index }}</strong></td>
+                                                <td>{{ step.description }}</td>
+                                                <td>{{ "%.1f"|format(step.estimated_hours) }} hours</td>
+                                                <td>
+                                                    <span class="badge bg-info">Pending</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> No breakdown steps available for this analysis.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Created Tasks -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Created Tasks</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if analysis.tasks %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Task Title</th>
+                                                <th>Assigned To</th>
+                                                <th>Priority</th>
+                                                <th>Estimated Hours</th>
+                                                <th>Due Date</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for task in analysis.tasks %}
+                                            <tr>
+                                                <td><strong>{{ task.title }}</strong></td>
+                                                <td>
+                                                    {% if task.assigned_to %}
+                                                        {{ task.assigned_to.full_name or task.assigned_to.username }}
+                                                    {% else %}
+                                                        <span class="text-muted">Unassigned</span>
+                                                        <br>
+                                                        <button class="btn btn-sm btn-outline-primary mt-1 assign-task-btn" data-task-id="{{ task.id }}">
+                                                            <i class="fas fa-user-plus"></i> Assign
+                                                        </button>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{% if task.priority == 'URGENT' %}danger{% elif task.priority == 'HIGH' %}warning{% elif task.priority == 'MEDIUM' %}info{% else %}secondary{% endif %}">
+                                                        {{ task.priority }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if task.estimated_hours %}
+                                                        {{ "%.1f"|format(task.estimated_hours) }} hours
+                                                    {% else %}
+                                                        <span class="text-muted">Not estimated</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if task.due_date %}
+                                                        {{ task.due_date.strftime('%Y-%m-%d') }}
+                                                    {% else %}
+                                                        <span class="text-muted">No deadline</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{% if task.status == 'COMPLETED' %}success{% elif task.status == 'IN_PROGRESS' %}primary{% elif task.status == 'ASSIGNED' %}info{% else %}secondary{% endif %}">
+                                                        {{ task.status }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> No tasks were created from this analysis.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0"><i class="fas fa-cogs"></i> Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <a href="{{ url_for('ai.analyze_task') }}" class="btn btn-primary w-100">
+                                            <i class="fas fa-robot"></i> New Analysis
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <a href="{{ url_for('task.list_tasks') }}" class="btn btn-success w-100">
+                                            <i class="fas fa-tasks"></i> View All Tasks
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-info w-100">
+                                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assign Task Modal -->
+        <div class="modal fade" id="assignTaskModal" tabindex="-1" aria-labelledby="assignTaskModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="assignTaskModalLabel"><i class="fas fa-user-plus"></i> Assign Task</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="assignTaskForm">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" id="assignTaskId" name="task_id">
+                            <div class="mb-3">
+                                <label for="assignToUser" class="form-label">Assign to Employee</label>
+                                <select class="form-select" id="assignToUser" name="user_id" required>
+                                    <option value="">Select an employee...</option>
+                                    {% if employees %}
+                                        {% for employee in employees %}
+                                            {% if employee.role.value == 'employee' or employee.role.value == 'EMPLOYEE' %}
+                                            <option value="{{ employee.id }}">
+                                                {{ employee.full_name or employee.username }} ({{ employee.department or 'General' }})
+                                            </option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dueDate" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="dueDate" name="due_date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select" id="priority" name="priority" required>
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submitAssignmentBtn">Assign Task</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Add event listener for submit button
+            document.addEventListener('DOMContentLoaded', function() {
+                const submitBtn = document.getElementById('submitAssignmentBtn');
+                if (submitBtn) {
+                    submitBtn.addEventListener('click', submitAssignment);
+                }
+            });
+        </script>
+    </div>
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Work Distribution and Tracking</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-tasks"></i> Work Distribution and Tracking
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    </li>
+                    {% if current_user.role == 'DIRECTOR' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/org/chart">Organization Chart</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/org/management">User Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tasks/director">Director View</a>
+                    </li>
+                    {% elif current_user.role == 'MANAGER' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tasks/manager">Team Tasks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/org/workload">Workload</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tasks/create">Create Task</a>
+                    </li>
+                    {% elif current_user.role == 'EMPLOYEE' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tasks/employee">My Tasks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tasks/updates">Task Updates</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ai/analyze">AI Analysis</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/auth/profile">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/auth/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Welcome Message -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h1 class="card-title">
+                            <i class="fas fa-home"></i> Welcome, {{ current_user.full_name }}!
+                        </h1>
+                        <p class="card-text">
+                            <strong>Role:</strong> {{ current_user.role }}
+                            {% if current_user.title %}
+                                | <strong>Title:</strong> {{ current_user.title }}
+                            {% endif %}
+                            {% if current_user.department %}
+                                | <strong>Department:</strong> {{ current_user.department }}
+                            {% endif %}
+                        </p>
+                        <p class="card-text">
+                            <strong>Current Workload:</strong> 
+                            <span class="badge {% if current_user.current_workload > 80 %}bg-danger
+                                            {% elif current_user.current_workload > 60 %}bg-warning
+                                            {% else %}bg-success{% endif %}">
+                                {{ "%.1f"|format(current_user.current_workload) }}%
+                            </span>
+                            | <strong>Tasks:</strong> {{ current_user.current_task_count }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <h1 class="display-4">{{ current_user.current_task_count }}</h1>
+                        <p class="card-text">Active Tasks</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body text-center">
+                        <h1 class="display-4">{{ "%.1f"|format(current_user.current_workload) }}%</h1>
+                        <p class="card-text">Workload</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body text-center">
+                        <h1 class="display-4">40</h1>
+                        <p class="card-text">Weekly Capacity (hours)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body text-center">
+                        <h1 class="display-4">{{ recent_tasks|length if recent_tasks else 0 }}</h1>
+                        <p class="card-text">Recent Tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role-Specific Content -->
+        <div class="row">
+            <div class="col-md-8">
+                {% if current_user.role == 'DIRECTOR' %}
+                <!-- Director Dashboard -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Organization Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>As a Director, you have access to:</p>
+                        <ul>
+                            <li><a href="/org/chart">Organization Chart</a> - View and manage the complete organizational structure</li>
+                            <li><a href="/org/management">User Management</a> - Manage all users in the system</li>
+                            <li><a href="/tasks/director">Director Task View</a> - Monitor all tasks across the organization</li>
+                            <li><a href="/ai/analyze">AI Task Analysis</a> - Use AI to analyze and optimize task distribution</li>
+                        </ul>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Tip:</strong> Use the AI Analysis tool to get insights on task distribution and workload balancing.
+                        </div>
+                    </div>
+                </div>
+                {% elif current_user.role == 'MANAGER' %}
+                <!-- Manager Dashboard -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-users"></i> Team Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>As a Manager, you can:</p>
+                        <ul>
+                            <li><a href="/tasks/manager">Team Tasks</a> - View and manage tasks for your team</li>
+                            <li><a href="/org/workload">Workload Monitoring</a> - Monitor your team's workload distribution</li>
+                            <li><a href="/tasks/create">Create New Tasks</a> - Assign tasks to your team members</li>
+                            <li><a href="/ai/analyze">AI Task Analysis</a> - Use AI to break down complex tasks</li>
+                        </ul>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Tip:</strong> Use the Workload page to ensure no team member is overloaded.
+                        </div>
+                    </div>
+                </div>
+                {% elif current_user.role == 'EMPLOYEE' %}
+                <!-- Employee Dashboard -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-tasks"></i> My Tasks</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>As an Employee, you can:</p>
+                        <ul>
+                            <li><a href="/tasks/employee">My Tasks</a> - View your assigned tasks with priority indicators</li>
+                            <li><a href="/tasks/updates">Task Updates</a> - Update progress on your tasks</li>
+                            <li><a href="/ai/analyze">AI Task Analysis</a> - Get help breaking down complex tasks</li>
+                        </ul>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Tip:</strong> Tasks are color-coded by priority: <span class="badge bg-danger">URGENT</span> <span class="badge bg-warning">HIGH</span> <span class="badge bg-info">MEDIUM</span> <span class="badge bg-secondary">LOW</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/ai/analyze" class="btn btn-primary">
+                                <i class="fas fa-robot"></i> AI Task Analysis
+                            </a>
+                            {% if current_user.role == 'MANAGER' %}
+                            <a href="/tasks/create" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Create New Task
+                            </a>
+                            <a href="/org/workload" class="btn btn-info">
+                                <i class="fas fa-chart-pie"></i> View Workload
+                            </a>
+                            {% elif current_user.role == 'EMPLOYEE' %}
+                            <a href="/tasks/employee" class="btn btn-success">
+                                <i class="fas fa-list-check"></i> View My Tasks
+                            </a>
+                            {% endif %}
+                            <a href="/auth/profile" class="btn btn-outline-primary">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Status -->
+                <div class="card mt-3">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-server"></i> System Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong>Database:</strong> 
+                            <span class="badge bg-success">Connected</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>AI Service:</strong> 
+                            <span class="badge bg-success">Available</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Users Online:</strong> 
+                            <span class="badge bg-primary">1</span>
+                        </div>
+                        <div>
+                            <strong>Last Login:</strong> 
+                            <span class="text-muted">Just now</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">Work Distribution and Tracking System v1.0.0</span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
